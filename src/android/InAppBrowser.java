@@ -1219,7 +1219,29 @@ public class InAppBrowser extends CordovaPlugin {
                 }
             }
 
-            if (url.startsWith(WebView.SCHEME_TEL)) {
+            if (url.startsWith("intent:") || url.startsWith("kakaotalk:")) {
+                Intent intent = new Intent();
+                try {
+                    intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+                    if (url.startsWith("kakaotalk:")) {
+                        intent.setPackage("com.kakao.talk");
+                    }
+                } catch (java.net.URISyntaxException e) {
+                    override = false;
+                    LOG.e(LOG_TAG, "Error with " + url + ": " + e.toString());
+                }
+                try {
+                    cordova.getActivity().startActivity(intent);
+                    override = true;
+                } catch (android.content.ActivityNotFoundException e) {
+                    String pkgName = intent.getPackage();
+                    if (pkgName != null) {
+                        cordova.getActivity().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + pkgName)));
+                        override = true;
+                    }
+                    LOG.e(LOG_TAG, "Error with " + url + ": " + e.toString());
+                }
+            } else if (url.startsWith(WebView.SCHEME_TEL)) {
                 try {
                     Intent intent = new Intent(Intent.ACTION_DIAL);
                     intent.setData(Uri.parse(url));
