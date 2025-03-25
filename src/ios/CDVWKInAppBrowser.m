@@ -693,6 +693,8 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
                 url = @"";
             }
         }
+
+        [self.inAppBrowserViewController forceEnableNavigationButton];
         CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
                                                       messageAsDictionary:@{@"type":@"loadstop", @"url":url}];
         [pluginResult setKeepCallbackAsBool:YES];
@@ -1335,6 +1337,12 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
 - (void)presentationControllerWillDismiss:(UIPresentationController *)presentationController
 {
     isExiting = YES;
+}
+
+- (void)forceEnableNavigationButton
+{
+    self.backButton.enabled = YES;
+    self.forwardButton.enabled = YES;
 }
 
 @end // CDVWKInAppBrowserViewController

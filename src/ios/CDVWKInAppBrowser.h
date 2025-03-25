@@ -80,6 +80,7 @@ typedef NSDictionary CDVSettingsDictionary;
 @property (nonatomic, weak) CDVWKInAppBrowser *navigationDelegate;
 @property (nonatomic) NSURL *currentURL;
 
+- (void)forceEnableNavigationButton;
 - (void)close;
 - (void)navigateTo:(NSURL *)url;
 - (void)showLocationBar:(BOOL)show;
