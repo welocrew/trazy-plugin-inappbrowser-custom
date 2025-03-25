@@ -575,6 +575,8 @@ static CDVWKInAppBrowser* instance = nil;
                 url = @"";
             }
         }
+
+        [self.inAppBrowserViewController forceEnableNavigationButton];
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
                                                       messageAsDictionary:@{@"type":@"loadstop", @"url":url}];
         [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
@@ -1150,6 +1152,15 @@ BOOL isExiting = FALSE;
     // update url, stop spinner, update back/forward
     
     self.addressLabel.text = [self.currentURL absoluteString];
+
+    // Below is hacky way to trick browser to enable back button;
+    // Need to forcefully push JS history in order to activate back button
+    // This will be called the first time web view launch.
+    [self.webView evaluateJavaScript:@"window.history.pushState({current: true, ts: Date.now()}, '', window.location.href);" completionHandler:^(id result, NSError *error) {
+        if (error) {
+            NSLog(@"Error creating history: %@", error);
+        }
+    }];
     self.backButton.enabled = theWebView.canGoBack;
     self.forwardButton.enabled = theWebView.canGoForward;
     theWebView.scrollView.contentInset = UIEdgeInsetsZero;
@@ -1227,6 +1238,11 @@ BOOL isExiting = FALSE;
 
 - (void)presentationControllerWillDismiss:(UIPresentationController *)presentationController {
     isExiting = TRUE;
+}
+
+- (void)forceEnableNavigationButton {
+    self.backButton.enabled = YES;
+    self.forwardButton.enabled = YES;
 }
 
 @end //CDVWKInAppBrowserViewController
