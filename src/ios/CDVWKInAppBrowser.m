@@ -861,7 +861,7 @@ BOOL isExiting = FALSE;
             [self.toolbar setItems:@[self.closeButton, flexibleSpaceButton, self.backButton, fixedSpaceButton, self.forwardButton]];
         }
     } else if (!_browserOptions.hidenavigationbuttons) {
-        [self.toolbar setItems:@[self.backButton, fixedSpaceButton, self.forwardButton]];
+        [self.toolbar setItems:@[flexibleSpaceButton, self.backButton, fixedSpaceButton, self.forwardButton]];
     } else {
         [self.toolbar setItems:@[]];
     }
