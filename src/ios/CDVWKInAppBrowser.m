@@ -843,6 +843,11 @@ BOOL isExiting = FALSE;
       self.backButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
     }
 
+    if (@available(iOS 26.0, *)) {
+        self.backButton.hidesSharedBackground = YES;
+        self.forwardButton.hidesSharedBackground = YES;
+    }
+
     // Filter out Navigation Buttons if user requests so
     if (_browserOptions.hidenavigationbuttons) {
         if (_browserOptions.lefttoright) {
