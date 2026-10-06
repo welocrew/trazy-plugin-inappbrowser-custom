@@ -28,6 +28,7 @@
         self.location = YES;
         self.toolbar = YES;
         self.closebuttoncaption = nil;
+        self.closebuttonenabled = YES;
         self.toolbarposition = @"bottom";
         self.cleardata = NO;
         self.clearcache = NO;

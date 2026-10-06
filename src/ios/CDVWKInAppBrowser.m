@@ -162,7 +162,7 @@ static CDVWKInAppBrowser* instance = nil;
     
     [self.inAppBrowserViewController showLocationBar:browserOptions.location];
     [self.inAppBrowserViewController showToolBar:browserOptions.toolbar :browserOptions.toolbarposition];
-    if (browserOptions.closebuttoncaption != nil || browserOptions.closebuttoncolor != nil) {
+    if (browserOptions.closebuttonenabled && (browserOptions.closebuttoncaption != nil || browserOptions.closebuttoncolor != nil)) {
         int closeButtonIndex = browserOptions.lefttoright ? (browserOptions.hidenavigationbuttons ? 1 : 4) : 0;
         [self.inAppBrowserViewController setCloseButtonTitle:browserOptions.closebuttoncaption :browserOptions.closebuttoncolor :closeButtonIndex];
     }
@@ -848,17 +848,22 @@ BOOL isExiting = FALSE;
         self.forwardButton.hidesSharedBackground = YES;
     }
 
-    // Filter out Navigation Buttons if user requests so
-    if (_browserOptions.hidenavigationbuttons) {
-        if (_browserOptions.lefttoright) {
-            [self.toolbar setItems:@[flexibleSpaceButton, self.closeButton]];
+    if (_browserOptions.closebuttonenabled) {
+        if (_browserOptions.hidenavigationbuttons) {
+            if (_browserOptions.lefttoright) {
+                [self.toolbar setItems:@[flexibleSpaceButton, self.closeButton]];
+            } else {
+                [self.toolbar setItems:@[self.closeButton, flexibleSpaceButton]];
+            }
+        } else if (_browserOptions.lefttoright) {
+            [self.toolbar setItems:@[self.backButton, fixedSpaceButton, self.forwardButton, flexibleSpaceButton, self.closeButton]];
         } else {
-            [self.toolbar setItems:@[self.closeButton, flexibleSpaceButton]];
+            [self.toolbar setItems:@[self.closeButton, flexibleSpaceButton, self.backButton, fixedSpaceButton, self.forwardButton]];
         }
-    } else if (_browserOptions.lefttoright) {
-        [self.toolbar setItems:@[self.backButton, fixedSpaceButton, self.forwardButton, flexibleSpaceButton, self.closeButton]];
+    } else if (!_browserOptions.hidenavigationbuttons) {
+        [self.toolbar setItems:@[self.backButton, fixedSpaceButton, self.forwardButton]];
     } else {
-        [self.toolbar setItems:@[self.closeButton, flexibleSpaceButton, self.backButton, fixedSpaceButton, self.forwardButton]];
+        [self.toolbar setItems:@[]];
     }
     
     self.view.backgroundColor = [UIColor clearColor];
