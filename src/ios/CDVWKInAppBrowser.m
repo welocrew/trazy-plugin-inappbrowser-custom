@@ -139,7 +139,7 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
 
     [self.inAppBrowserViewController showLocationBar:browserOptions.location];
     [self.inAppBrowserViewController showToolBar:browserOptions.toolbar atPosition:browserOptions.toolbarposition];
-    if (browserOptions.closebuttoncaption != nil || browserOptions.closebuttoncolor != nil) {
+    if (browserOptions.closebuttonenabled && (browserOptions.closebuttoncaption != nil || browserOptions.closebuttoncolor != nil)) {
         int closeButtonIndex = browserOptions.lefttoright ? (browserOptions.hidenavigationbuttons ? 1 : 4) : 0;
         [self.inAppBrowserViewController setCloseButtonTitle:browserOptions.closebuttoncaption withColor:browserOptions.closebuttoncolor atIndex:closeButtonIndex];
     }
@@ -945,26 +945,27 @@ BOOL isExiting = NO;
         self.backButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
     }
 
-    // Add toolbar items
-    // Define the close button and flexible space button, they are swapped when lefttoright is set
-    NSArray *closeItems = _browserOptions.lefttoright ? @[flexibleSpaceButton, self.closeButton] : @[self.closeButton, flexibleSpaceButton];
-    // Navigation items are optional
-    NSArray *navigationItems = @[self.backButton, fixedSpaceButton, self.forwardButton];
+    if (@available(iOS 26.0, *)) {
+        self.backButton.hidesSharedBackground = YES;
+        self.forwardButton.hidesSharedBackground = YES;
+    }
 
-    // Add close items without navigation items
-    if (_browserOptions.hidenavigationbuttons) {
-        self.toolbar.items = closeItems;
+    if (_browserOptions.closebuttonenabled) {
+        // Define the close button and flexible space button, they are swapped when lefttoright is set
+        NSArray *closeItems = _browserOptions.lefttoright ? @[flexibleSpaceButton, self.closeButton] : @[self.closeButton, flexibleSpaceButton];
+        NSArray *navigationItems = @[self.backButton, fixedSpaceButton, self.forwardButton];
 
-        // Add close items and navigation items
-    } else {
-        // left to right is set, first add navigation items, than close items
-        if (_browserOptions.lefttoright) {
+        if (_browserOptions.hidenavigationbuttons) {
+            self.toolbar.items = closeItems;
+        } else if (_browserOptions.lefttoright) {
             self.toolbar.items = [navigationItems arrayByAddingObjectsFromArray:closeItems];
-
-            // Default order, first close items than navigation items
         } else {
             self.toolbar.items = [closeItems arrayByAddingObjectsFromArray:navigationItems];
         }
+    } else if (!_browserOptions.hidenavigationbuttons) {
+        self.toolbar.items = @[flexibleSpaceButton, self.backButton, fixedSpaceButton, self.forwardButton];
+    } else {
+        self.toolbar.items = @[];
     }
 
     self.webView.navigationDelegate = self;
