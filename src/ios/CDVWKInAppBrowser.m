@@ -360,9 +360,16 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
                     strongSelf->tmpWindow = [[UIWindow alloc] initWithFrame:frame];
                 }
             }
+            // Keep the presentation window transparent while UIKit transfers
+            // status-bar ownership. A default UIViewController background is
+            // systemBackgroundColor, which flashes white in Light Mode and
+            // black in Dark Mode during the first presentation frame.
+            strongSelf->tmpWindow.backgroundColor = [UIColor clearColor];
             UIViewController *tmpController = [[UIViewController alloc] init];
+            tmpController.view.backgroundColor = [UIColor clearColor];
             [strongSelf->tmpWindow setRootViewController:tmpController];
             [strongSelf->tmpWindow setWindowLevel:UIWindowLevelNormal];
+            nav.view.backgroundColor = [UIColor clearColor];
 
             if (!initHidden) {
                 [self->tmpWindow makeKeyAndVisible];
