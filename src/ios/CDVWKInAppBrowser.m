@@ -262,7 +262,6 @@ static CDVWKInAppBrowser* instance = nil;
                 }
             }
             UIViewController *tmpController = [[UIViewController alloc] init];
-            tmpController.view.backgroundColor = [UIColor whiteColor];
             [strongSelf->tmpWindow setRootViewController:tmpController];
             [strongSelf->tmpWindow setWindowLevel:UIWindowLevelNormal];
 
@@ -711,9 +710,6 @@ BOOL isExiting = FALSE;
     
 
     self.webView = [[WKWebView alloc] initWithFrame:webViewBounds configuration:configuration];
-    // Avoid showing the initial frame at y=0 while the presented window's safe
-    // area is being calculated. The WebView is revealed after layout completes.
-    self.webView.hidden = YES;
 
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 160400
     // With the introduction of iOS 16.4 the webview is no longer inspectable by default.
@@ -870,9 +866,7 @@ BOOL isExiting = FALSE;
         [self.toolbar setItems:@[]];
     }
     
-    // Keep the presentation container opaque while the splash screen fades.
-    // Otherwise the safe-area region can briefly reveal the window behind it.
-    self.view.backgroundColor = [UIColor whiteColor];
+    self.view.backgroundColor = [UIColor clearColor];
     [self.view addSubview:self.toolbar];
     [self.view addSubview:self.addressLabel];
     [self.view addSubview:self.spinner];
@@ -1101,13 +1095,6 @@ BOOL isExiting = FALSE;
     // versions. The view's safe area includes the Dynamic Island and other
     // unsafe regions, so use it whenever the presented window lays itself out.
     [self rePositionViews];
-}
-
-- (void)viewDidAppear:(BOOL)animated
-{
-    [super viewDidAppear:animated];
-    [self rePositionViews];
-    self.webView.hidden = NO;
 }
 
 - (float) getStatusBarOffset {
