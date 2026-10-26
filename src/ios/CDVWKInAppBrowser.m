@@ -312,11 +312,6 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
 
 - (void)show:(CDVInvokedUrlCommand *)command withNoAnimate:(BOOL)noAnimate
 {
-    BOOL initHidden = NO;
-    if (command == nil && noAnimate == YES) {
-        initHidden = YES;
-    }
-
     if (self.inAppBrowserViewController == nil) {
         NSLog(@"Tried to show IAB after it was closed.");
         return;
@@ -326,63 +321,30 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
                                                         initWithRootViewController:self.inAppBrowserViewController];
     nav.navigationBarHidden = YES;
     nav.modalPresentationStyle = self.inAppBrowserViewController.modalPresentationStyle;
-    nav.presentationController.delegate = self.inAppBrowserViewController;
+    nav.view.backgroundColor = [UIColor clearColor];
 
     __weak CDVWKInAppBrowser *weakSelf = self;
 
     void (^presentBrowser)(void) = ^{
-        if (weakSelf.inAppBrowserViewController != nil) {
-            __strong __typeof(weakSelf) strongSelf = weakSelf;
-            if (!strongSelf->tmpWindow) {
-                if (@available(iOS 13.0, *)) {
-                    UIWindowScene *windowScene = strongSelf.viewController.view.window.windowScene;
-                    // The main Cordova window's scene reference isn't always available at the time the InAppBrowser
-                    // creates its temporary UIWindow. Fallback to iterate through UIApplication.connectedScenes
-                    // to get an UIWindowScene.
-                    if (!windowScene) {
-                        for (UIScene *connectedScene in [UIApplication sharedApplication].connectedScenes) {
-                            if (connectedScene.activationState == UISceneActivationStateForegroundActive &&
-                                [connectedScene isKindOfClass:[UIWindowScene class]]) {
-                                windowScene = (UIWindowScene *)connectedScene;
-                                break;
-                            }
-                        }
-                    }
-                    if (windowScene) {
-                        strongSelf->tmpWindow = [[UIWindow alloc] initWithWindowScene:windowScene];
-                    }
-                }
-
-                // This code should only be executed on pre iOS 13.
-                // On scene-based iOS 13+ versions, initializing a window with initWithFrame:
-                // would produce a window with no scene association, which results that the
-                // window would never be displayed, which results in a white/blank screen.
-                if (!strongSelf->tmpWindow) {
-                    CGRect frame = [[UIScreen mainScreen] bounds];
-                    strongSelf->tmpWindow = [[UIWindow alloc] initWithFrame:frame];
-                }
-            }
-            // Keep the presentation window transparent while UIKit transfers
-            // status-bar ownership. A default UIViewController background is
-            // systemBackgroundColor, which flashes white in Light Mode and
-            // black in Dark Mode during the first presentation frame.
-            strongSelf->tmpWindow.backgroundColor = [UIColor clearColor];
-            UIViewController *tmpController = [[UIViewController alloc] init];
-            tmpController.view.backgroundColor = [UIColor clearColor];
-            [strongSelf->tmpWindow setRootViewController:tmpController];
-            [strongSelf->tmpWindow setWindowLevel:UIWindowLevelNormal];
-            nav.view.backgroundColor = [UIColor clearColor];
-
-            if (!initHidden) {
-                [self->tmpWindow makeKeyAndVisible];
-            }
-            [tmpController presentViewController:nav animated:!noAnimate completion:^{
-                if (command != nil && command.callbackId != nil) {
-                    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-                    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-                }
-            }];
+        __strong __typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf.inAppBrowserViewController == nil) {
+            return;
         }
+
+        // Present from Cordova's existing view controller. A second key window
+        // changes scene/status-bar ownership on iOS 27 and exposes the dynamic
+        // system background for one frame during the handoff.
+        UIViewController *presentingViewController = strongSelf.viewController;
+        if (presentingViewController.presentedViewController != nil) {
+            presentingViewController = presentingViewController.presentedViewController;
+        }
+        nav.presentationController.delegate = strongSelf.inAppBrowserViewController;
+        [presentingViewController presentViewController:nav animated:!noAnimate completion:^{
+            if (command != nil && command.callbackId != nil) {
+                CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+                [strongSelf.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+            }
+        }];
     };
 
     if ([NSThread isMainThread]) {
