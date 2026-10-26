@@ -304,7 +304,10 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
 
 - (void)show:(CDVInvokedUrlCommand *)command
 {
-    [self show:command withNoAnimate:NO];
+    // A browser opened with hidden=yes is revealed after loadstop. Avoid a
+    // second modal animation during the splash-to-browser handoff; the
+    // animation exposes the presentation window before its content is ready.
+    [self show:command withNoAnimate:YES];
 }
 
 - (void)show:(CDVInvokedUrlCommand *)command withNoAnimate:(BOOL)noAnimate
@@ -327,8 +330,7 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
 
     __weak CDVWKInAppBrowser *weakSelf = self;
 
-    // Run later to avoid the "took a long time" log message.
-    dispatch_async(dispatch_get_main_queue(), ^{
+    void (^presentBrowser)(void) = ^{
         if (weakSelf.inAppBrowserViewController != nil) {
             __strong __typeof(weakSelf) strongSelf = weakSelf;
             if (!strongSelf->tmpWindow) {
@@ -376,7 +378,13 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
             }
             [tmpController presentViewController:nav animated:!noAnimate completion:nil];
         }
-    });
+    };
+
+    if ([NSThread isMainThread]) {
+        presentBrowser();
+    } else {
+        dispatch_sync(dispatch_get_main_queue(), presentBrowser);
+    }
 }
 
 - (void)hide:(CDVInvokedUrlCommand *)command
