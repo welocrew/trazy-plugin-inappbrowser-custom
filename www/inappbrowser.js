@@ -53,8 +53,8 @@
         close: function (eventname) {
             exec(null, null, 'InAppBrowser', 'close', []);
         },
-        show: function (eventname) {
-            exec(null, null, 'InAppBrowser', 'show', []);
+        show: function (success, error) {
+            exec(success, error, 'InAppBrowser', 'show', []);
         },
         hide: function (eventname) {
             exec(null, null, 'InAppBrowser', 'hide', []);

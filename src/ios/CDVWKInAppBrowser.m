@@ -376,7 +376,12 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
             if (!initHidden) {
                 [self->tmpWindow makeKeyAndVisible];
             }
-            [tmpController presentViewController:nav animated:!noAnimate completion:nil];
+            [tmpController presentViewController:nav animated:!noAnimate completion:^{
+                if (command != nil && command.callbackId != nil) {
+                    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+                    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+                }
+            }];
         }
     };
 
