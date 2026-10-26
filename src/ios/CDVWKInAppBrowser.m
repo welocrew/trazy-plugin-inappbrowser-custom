@@ -321,6 +321,9 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
                                                         initWithRootViewController:self.inAppBrowserViewController];
     nav.navigationBarHidden = YES;
     nav.modalPresentationStyle = self.inAppBrowserViewController.modalPresentationStyle;
+    if (nav.modalPresentationStyle == UIModalPresentationFullScreen) {
+        nav.modalPresentationStyle = UIModalPresentationOverFullScreen;
+    }
     nav.view.backgroundColor = [UIColor clearColor];
     nav.view.opaque = NO;
 
