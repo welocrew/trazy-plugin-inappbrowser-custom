@@ -322,6 +322,7 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
     nav.navigationBarHidden = YES;
     nav.modalPresentationStyle = self.inAppBrowserViewController.modalPresentationStyle;
     nav.view.backgroundColor = [UIColor clearColor];
+    nav.view.opaque = NO;
 
     __weak CDVWKInAppBrowser *weakSelf = self;
 
@@ -356,11 +357,6 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
 
 - (void)hide:(CDVInvokedUrlCommand *)command
 {
-    // Set tmpWindow to hidden to make main WebView responsive to touch again
-    // https://stackoverflow.com/questions/4544489/how-to-remove-a-uiwindow
-    self->tmpWindow.hidden = YES;
-    self->tmpWindow = nil;
-
     if (self.inAppBrowserViewController == nil) {
         NSLog(@"Tried to hide IAB after it was closed.");
         return;
@@ -723,11 +719,6 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
     // Set navigationDelegate to nil to ensure no callbacks are received from it.
     self.inAppBrowserViewController.navigationDelegate = nil;
     self.inAppBrowserViewController = nil;
-
-    // Set tmpWindow to hidden to make main WebView responsive to touch again
-    // Based on https://stackoverflow.com/questions/4544489/how-to-remove-a-uiwindow
-    self->tmpWindow.hidden = YES;
-    self->tmpWindow = nil;
 }
 
 @end // CDVWKInAppBrowser
@@ -757,6 +748,11 @@ BOOL isExiting = NO;
 
 - (void)createViews
 {
+    // Keep the presentation layer transparent so UIKit does not expose its
+    // appearance-dependent system background during the status-area handoff.
+    self.view.backgroundColor = [UIColor clearColor];
+    self.view.opaque = NO;
+
     // We create the views in code for primarily for ease of upgrades and not requiring an external .xib to be included.
     WKUserContentController *userContentController = [[WKUserContentController alloc] init];
     WKWebViewConfiguration *configuration = [[WKWebViewConfiguration alloc] init];
