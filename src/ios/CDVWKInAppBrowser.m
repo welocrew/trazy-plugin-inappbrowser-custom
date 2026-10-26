@@ -1084,13 +1084,21 @@ BOOL isExiting = FALSE;
 
 - (void)viewWillAppear:(BOOL)animated
 {
-    [self rePositionViews];
-    
     [super viewWillAppear:animated];
+    [self rePositionViews];
+}
+
+- (void)viewDidLayoutSubviews
+{
+    [super viewDidLayoutSubviews];
+    // The status bar frame is not reliable for scene-based apps on newer iOS
+    // versions. The view's safe area includes the Dynamic Island and other
+    // unsafe regions, so use it whenever the presented window lays itself out.
+    [self rePositionViews];
 }
 
 - (float) getStatusBarOffset {
-    return (float) [[UIApplication sharedApplication] statusBarFrame].size.height;
+    return self.view.safeAreaInsets.top;
 }
 
 - (void) rePositionViews {
